@@ -30,3 +30,5 @@ Thumbs.db
 
 backend.Api/.vscode/
 backend.Api/.vs/
+backend.Api/bin/
+backend.Api/obj/
