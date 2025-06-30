@@ -1,6 +1,6 @@
-namespace. backend.Api.Entities;
+namespace API.Entities;
 
-public Enum PaymentStatus 
+public enum PaymentStatus 
 {
     Pending,
     InProgress,
@@ -8,7 +8,7 @@ public Enum PaymentStatus
     Cancelled
 }
 
-public Enum PaymentMethod 
+public enum PaymentMethod 
 {
     CreditCard,
     PayPal,
@@ -26,6 +26,6 @@ public class Payment
     public string Status { get; set; } = "Pending"; // e.g., Pending, Completed, Failed
     public string PaymentMethodDetails { get; set; } = string.Empty; // Details of the payment method used
     public string paymentStatus { get; set; } = "Pending"; // Current status of the payment
-    public Timestamp CreatedAt { get; set; } = DateTime.UtcNow; // Timestamp when the payment was created
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow; // Timestamp when the payment was created
 
 }
