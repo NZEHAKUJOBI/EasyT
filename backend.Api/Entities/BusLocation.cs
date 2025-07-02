@@ -1,4 +1,4 @@
-namespace backend.Api.Entities;
+namespace API.Entities;
 
 public class BusLocation
 {
