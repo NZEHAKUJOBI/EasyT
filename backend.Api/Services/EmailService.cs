@@ -1,7 +1,7 @@
 using API.Interface;
 using Microsoft.Extensions.Logging;
 
-namespace AuthExample.Services
+namespace API.Services
 {
     public class EmailService : IEmailService
     {

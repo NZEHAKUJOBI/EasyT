@@ -1,7 +1,7 @@
 using API.Interface;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace AuthExample.Services
+namespace API.Services
 {
     public class OtpService : IOtpService
     {

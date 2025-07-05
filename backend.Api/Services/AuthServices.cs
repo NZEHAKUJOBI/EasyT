@@ -3,12 +3,14 @@ using API.DTO.Response;
 using API.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using API.Services;
+
 using API.Interface;
 
 
-namespace AuthExample.Services
+
+namespace API.Services
 {
+
     public class AuthService : IAuthService
     {
         private readonly AppDbContext _context;
@@ -16,6 +18,7 @@ namespace AuthExample.Services
         private readonly IJwtService _jwtService;
         private readonly IEmailService _emailService;
         private readonly IOtpService _otpService;
+
 
         public AuthService(
             AppDbContext context,

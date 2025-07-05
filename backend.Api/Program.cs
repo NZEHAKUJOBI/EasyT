@@ -4,6 +4,10 @@ using API.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using API.Interface;
+using Microsoft.AspNetCore.Identity;
+using API.Entities;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,11 +19,15 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+ 
 
-// ----------------- Build App ------------------
 
-var app = builder.Build();
-builder.Services.AddScoped<JwtService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -36,6 +44,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
+// ----------------- Build App ------------------
+
+var app = builder.Build();
+
 // ----------------- Configure Middleware ------------------
 
 if (app.Environment.IsDevelopment())
@@ -44,10 +56,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-
 app.UseHttpsRedirection();
 
+app.UseAuthentication(); // ✅ ensure authentication middleware is added
 app.UseAuthorization();
 
 app.MapControllers();
