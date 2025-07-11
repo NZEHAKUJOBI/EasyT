@@ -1,4 +1,5 @@
 using API.Entities;
+using API.Interface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace API.Services
 {
-    public class JwtService
+    public class JwtService : IJwtService
     {
         private readonly IConfiguration _configuration;
 
