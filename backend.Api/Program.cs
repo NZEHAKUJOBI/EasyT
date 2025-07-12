@@ -25,6 +25,13 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
+
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "EasyT API", Version = "v1" });
+    c.EnableAnnotations();
+});
 
 
 
@@ -48,6 +55,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // ----------------- Build App ------------------
 
 var app = builder.Build();
+
+// ----------------- Configure Error Handling ------------------
+var config = app.Services.GetRequiredService<IConfiguration>();
+int port = config.GetValue<int>("AppSettings:Port");
+Console.WriteLine($"Application running on port: {port}");
 
 // ----------------- Configure Middleware ------------------
 

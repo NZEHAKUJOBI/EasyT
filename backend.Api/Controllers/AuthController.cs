@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using API.DTO.Response;
 using API.Interface;
 using API.Services;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace API.Controllers
 {
@@ -16,7 +17,15 @@ namespace API.Controllers
             _authService = authService;
         }
 
+        /// <summary>
+        /// Registers a new user.
+        /// </summary>
+        /// <param name="dto">User registration data.</param>
+        /// <returns>Registration result.</returns>
         [HttpPost("register")]
+        [SwaggerOperation(Summary = "Register a new user", Description = "Creates a new user account.")]
+        [SwaggerResponse(200, "User registered successfully")]
+        [SwaggerResponse(400, "Registration failed")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto dto)
         {
             var result = await _authService.RegisterAsync(dto);
@@ -26,7 +35,15 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Verifies user's email using OTP.
+        /// </summary>
+        /// <param name="dto">Email OTP data.</param>
+        /// <returns>Email verification result.</returns>
         [HttpPost("verify-email")]
+        [SwaggerOperation(Summary = "Verify email with OTP", Description = "Verifies user's email address using OTP.")]
+        [SwaggerResponse(200, "Email verified successfully")]
+        [SwaggerResponse(400, "Verification failed")]
         public async Task<IActionResult> VerifyEmail([FromBody] EmailOtpDto dto)
         {
             var result = await _authService.VerifyEmailAsync(dto);
@@ -36,7 +53,15 @@ namespace API.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Logs in a user.
+        /// </summary>
+        /// <param name="dto">Login data.</param>
+        /// <returns>Login result.</returns>
         [HttpPost("login")]
+        [SwaggerOperation(Summary = "Login user", Description = "Authenticates user and returns login result.")]
+        [SwaggerResponse(200, "Login successful")]
+        [SwaggerResponse(400, "Login failed")]
         public async Task<IActionResult> Login([FromBody] LoginResponseDto dto)
         {
             var result = await _authService.LoginAsync(dto);
