@@ -1,7 +1,10 @@
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace API.Entities;
 
 public class User
-{
+{  
+    [SwaggerSchema(ReadOnly = true)]
     public Guid Id { get; set; }
 
     public string FirstName { get; set; } = string.Empty;

@@ -3,6 +3,6 @@ namespace API.Interface
 {
     public interface IEmailService
     {
-        Task SendEmailAsync(string to, string subject, string body);
+        Task<bool> SendEmailAsync(string toEmail, string subject, string message, string fromEmail = null, byte[] pdfAttachment = null);
     }
 }
