@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using API.DTO.Response;
+using backend.API.DTO.Request;
+using backend.Api.DTO.Response;
 using API.Interface;
 using API.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -62,7 +63,7 @@ namespace API.Controllers
         [SwaggerOperation(Summary = "Login user", Description = "Authenticates user and returns login result.")]
         [SwaggerResponse(200, "Login successful")]
         [SwaggerResponse(400, "Login failed")]
-        public async Task<IActionResult> Login([FromBody] LoginResponseDto dto)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto dto)
         {
             var result = await _authService.LoginAsync(dto);
             if (!result.Success)

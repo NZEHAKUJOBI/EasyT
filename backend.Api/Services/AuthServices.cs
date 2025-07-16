@@ -1,10 +1,11 @@
 using API.Data;
-using API.DTO.Response;
+using backend.Api.DTO.Response;
 using API.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 using API.Interface;
+using backend.API.DTO.Request;
 
 
 
@@ -83,24 +84,31 @@ namespace API.Services
             return ServiceResponseDto<string>.FailResponse("Invalid OTP.");
         }
 
-        public async Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginResponseDto dto, CancellationToken cancellationToken = default)
+        public async Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default)
         {
             var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
             if (user == null)
-                return ServiceResponseDto<LoginResponseDto>.FailResponse("Invalid username or password.");
+                return ServiceResponseDto<LoginResponseDto>.FailResponse("Invalid email or password.");
+
+            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.Password);
+            if (result == PasswordVerificationResult.Failed)
+                return ServiceResponseDto<LoginResponseDto>.FailResponse("Invalid email or password.");
 
             if (!user.IsEmailVerified)
-                return ServiceResponseDto<LoginResponseDto>.FailResponse("Please verify your email before logging in.");
-
-            var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.password);
-            if (result == PasswordVerificationResult.Failed)
-                return ServiceResponseDto<LoginResponseDto>.FailResponse("Invalid username or password.");
+                return ServiceResponseDto<LoginResponseDto>.FailResponse("Email not verified.");
+            var IsEmailVerified = user.IsEmailVerified;
+            if (!IsEmailVerified)
+                return ServiceResponseDto<LoginResponseDto>.FailResponse("Email not verified. Please verify your email before logging in.");
 
             var token = _jwtService.GenerateToken(user);
-
-            var responseDto = new LoginResponseDto { Token = token };
-
-            return ServiceResponseDto<LoginResponseDto>.SuccessResponse(responseDto, "Login successful.");
+            return ServiceResponseDto<LoginResponseDto>.SuccessResponse(new LoginResponseDto
+            {
+                Token = token,
+                UserId = user.Id,
+                FullName = $"{user.FirstName} {user.LastName} {user.MiddleName}".Trim(),
+                Email = user.Email,
+                Role = user.Role
+            });
         }
     }
 }

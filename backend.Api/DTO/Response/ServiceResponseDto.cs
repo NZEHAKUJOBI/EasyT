@@ -1,4 +1,4 @@
-namespace API.DTO.Response
+namespace backend.Api.DTO.Response
 {
     public class ServiceResponseDto<T>
     {

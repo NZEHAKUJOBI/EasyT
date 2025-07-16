@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\EasyT\\backend.api\\backend.Api.csproj": {}
+    "C:\\EasyT\\backend.Api\\backend.Api.csproj": {}
   },
   "projects": {
-    "C:\\EasyT\\backend.api\\backend.Api.csproj": {
+    "C:\\EasyT\\backend.Api\\backend.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\EasyT\\backend.api\\backend.Api.csproj",
+        "projectUniqueName": "C:\\EasyT\\backend.Api\\backend.Api.csproj",
         "projectName": "backend.Api",
-        "projectPath": "C:\\EasyT\\backend.api\\backend.Api.csproj",
+        "projectPath": "C:\\EasyT\\backend.Api\\backend.Api.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\EasyT\\backend.api\\obj\\",
+        "outputPath": "C:\\EasyT\\backend.Api\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"

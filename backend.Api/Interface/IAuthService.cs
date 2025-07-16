@@ -1,5 +1,7 @@
 
-using API.DTO.Response;
+// Update the using directive to the correct namespace for your DTOs
+using backend.Api.DTO.Response;
+using backend.API.DTO.Request;
 
 namespace API.Services
 {
@@ -9,6 +11,6 @@ namespace API.Services
 
         Task<ServiceResponseDto<string>> VerifyEmailAsync(EmailOtpDto dto, CancellationToken cancellationToken = default);
 
-        Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginResponseDto dto, CancellationToken cancellationToken = default);
+        Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default);
     }
 }

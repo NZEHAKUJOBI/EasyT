@@ -1,7 +1,8 @@
-namespace API.DTO.Response
+namespace backend.Api.DTO.Response
 {
     public class LoginResponseDto
     {
+        public Guid UserId { get; set; } = Guid.Empty;
         public string Token { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
