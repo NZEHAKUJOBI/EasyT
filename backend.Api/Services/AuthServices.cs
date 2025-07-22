@@ -21,6 +21,11 @@ namespace API.Services
         private readonly IOtpService _otpService;
 
 
+    
+
+
+
+
         public AuthService(
             AppDbContext context,
             IPasswordHasher<User> passwordHasher,
@@ -39,10 +44,10 @@ namespace API.Services
         {
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return ServiceResponseDto<string>.FailResponse("Username is already taken.");
-        
+
             if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
                 return ServiceResponseDto<string>.FailResponse("Email is already in use.");
-        
+
             var user = new User
             {
                 Email = dto.Email, // Assuming username is the email
@@ -52,37 +57,48 @@ namespace API.Services
                 PhoneNumber = dto.PhoneNumber,
                 Role = "Passenger", // Default role
                 Id = Guid.NewGuid(),
-                 
+
             };
-        
+
             user.PasswordHash = _passwordHasher.HashPassword(user, dto.Password);
-        
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-        
+
             var otp = _otpService.GenerateOtp();
             _otpService.StoreOtp(user.Email, otp);
-        
+
             await _emailService.SendEmailAsync(user.Email, "Verify your email", $"Your OTP is: {otp}");
-        
+
             return ServiceResponseDto<string>.SuccessResponse("User registered. Please check your email for OTP to verify your account.");
         }
 
         public async Task<ServiceResponseDto<string>> VerifyEmailAsync(EmailOtpDto dto, CancellationToken cancellationToken = default)
+{
+    var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
+    var tenant = await _context.Tenants.SingleOrDefaultAsync(t => t.Email == dto.Email, cancellationToken);
+
+    if (user == null && tenant == null)
+        return ServiceResponseDto<string>.FailResponse("No user or tenant found with this email.");
+
+    if (_otpService.ValidateOtp(dto.Email, dto.OtpCode))
+    {
+        if (user != null)
+            user.IsEmailVerified = true;
+
+        if (tenant != null)
         {
-            var user = await _context.Users.SingleOrDefaultAsync(u => u.Email == dto.Email, cancellationToken);
-            if (user == null)
-                return ServiceResponseDto<string>.FailResponse("User not found.");
-
-            if (_otpService.ValidateOtp(dto.Email, dto.OtpCode))
-            {
-                user.IsEmailVerified = true;
-                await _context.SaveChangesAsync(cancellationToken);
-                return ServiceResponseDto<string>.SuccessResponse("Email verified successfully.");
-            }
-
-            return ServiceResponseDto<string>.FailResponse("Invalid OTP.");
+            tenant.IsEmailVerified = true;
+            tenant.IsActive = true;
         }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return ServiceResponseDto<string>.SuccessResponse("Email verified successfully.");
+    }
+
+    return ServiceResponseDto<string>.FailResponse("Invalid OTP.");
+}
+
 
         public async Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default)
         {
@@ -110,5 +126,72 @@ namespace API.Services
                 Role = user.Role
             });
         }
-    }
-}
+            public async Task<ServiceResponseDto<string>> RegisterTenant(RegisterTenantRequestDto dto)
+        {
+            // Check for existing tenant by email
+            if (await _context.Tenants.AnyAsync(t => t.Email == dto.Email))
+                return ServiceResponseDto<string>.FailResponse("Tenant with this email already exists.");
+
+            // Check for existing user by email
+            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
+                return ServiceResponseDto<string>.FailResponse("User with this email already exists.");
+
+            if (!PasswordValidatorUtility.IsValidPassword(dto.AdminPassword))
+            return ServiceResponseDto<string>.FailResponse(message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
+            // Create tenant entity
+            var tenant = new Tenant
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                MiddleName = dto.MiddleName,
+                AdminPassword = _passwordHasher.HashPassword(null, dto.AdminPassword), // Hash the admin password
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                BaseFare = 500, // Default base fare
+                PerKilometerRate = 100,
+                CommissionRate = 0.10m,
+                CreatedAt = DateTime.UtcNow,
+                IsActive = false,
+                UpdatedAt = DateTime.UtcNow,
+                Role = "Driver", // Default role for tenant admin
+              
+                
+            };
+
+            await _context.Tenants.AddAsync(tenant);
+
+            // Create tenant admin user (User entity, not Tenant)
+            var adminUser = new User
+            {
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                MiddleName = dto.MiddleName,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                Role = "Driver", // Use your enum
+                TenantId = tenant.Id,
+                IsEmailVerified =false,
+
+                
+            };
+
+            // Hash and assign password
+            adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, dto.AdminPassword);
+
+            await _context.Users.AddAsync(adminUser);
+
+            // Save all changes
+            await _context.SaveChangesAsync();
+            var otp = _otpService.GenerateOtp();
+            _otpService.StoreOtp(dto.Email, otp);
+
+            await _emailService.SendEmailAsync(dto.Email, "Verify your email", $"Your OTP is: {otp}");
+
+
+            return ServiceResponseDto<string>.SuccessResponse("Tenant registered successfully.");
+        }
+
+    } }
+
+
+        

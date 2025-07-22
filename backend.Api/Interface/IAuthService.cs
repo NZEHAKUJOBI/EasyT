@@ -12,5 +12,6 @@ namespace API.Services
         Task<ServiceResponseDto<string>> VerifyEmailAsync(EmailOtpDto dto, CancellationToken cancellationToken = default);
 
         Task<ServiceResponseDto<LoginResponseDto>> LoginAsync(LoginRequestDto dto, CancellationToken cancellationToken = default);
+        Task<ServiceResponseDto<string>> RegisterTenant(RegisterTenantRequestDto dto);
     }
 }
