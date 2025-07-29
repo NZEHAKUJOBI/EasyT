@@ -24,6 +24,8 @@ namespace API.Entities
         public double DistanceInKm { get; set; }
         public decimal Fare { get; set; }
 
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
         public RideStatus Status { get; set; } = RideStatus.Requested;
 
         public DateTime RequestedAt { get; set; } = DateTime.UtcNow;

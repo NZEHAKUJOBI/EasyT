@@ -1,31 +1,25 @@
 {
   "format": 1,
   "restore": {
-    "C:\\sourcecode\\EasyT\\backend.Api\\backend.Api.csproj": {}
+    "C:\\EasyT\\backend.Api\\backend.Api.csproj": {}
   },
   "projects": {
-    "C:\\sourcecode\\EasyT\\backend.Api\\backend.Api.csproj": {
+    "C:\\EasyT\\backend.Api\\backend.Api.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\sourcecode\\EasyT\\backend.Api\\backend.Api.csproj",
+        "projectUniqueName": "C:\\EasyT\\backend.Api\\backend.Api.csproj",
         "projectName": "backend.Api",
-        "projectPath": "C:\\sourcecode\\EasyT\\backend.Api\\backend.Api.csproj",
-        "packagesPath": "C:\\Users\\DNzeh\\.nuget\\packages\\",
-        "outputPath": "C:\\sourcecode\\EasyT\\backend.Api\\obj\\",
+        "projectPath": "C:\\EasyT\\backend.Api\\backend.Api.csproj",
+        "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
+        "outputPath": "C:\\EasyT\\backend.Api\\obj\\",
         "projectStyle": "PackageReference",
-        "fallbackFolders": [
-          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
-        ],
         "configFilePaths": [
-          "C:\\Users\\DNzeh\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net9.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -92,7 +86,7 @@
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[9.0.1, )"
+              "version": "[9.0.3, )"
             },
             "Swashbuckle.AspNetCore.Annotations": {
               "target": "Package",
@@ -118,7 +112,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.300/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.301/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
