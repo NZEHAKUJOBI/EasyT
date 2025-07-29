@@ -115,6 +115,7 @@ namespace API.Services
             var IsEmailVerified = user.IsEmailVerified;
             if (!IsEmailVerified)
                 return ServiceResponseDto<LoginResponseDto>.FailResponse("Email not verified. Please verify your email before logging in.");
+            
 
             var token = _jwtService.GenerateToken(user);
             return ServiceResponseDto<LoginResponseDto>.SuccessResponse(new LoginResponseDto

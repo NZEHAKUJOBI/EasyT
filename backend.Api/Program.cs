@@ -58,6 +58,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+
+// ✅ Identify the current environment
+var environment = builder.Environment.IsProduction() ? "Production"
+                : builder.Environment.IsStaging() ? "Staging"
+                : "Development";
+
+Console.WriteLine($"🌍 Running in **{environment}** mode.");
+
+// ✅ Log Environment Variables & Configurations for Debugging
+Console.WriteLine("🔍 Checking loaded configuration values...");
+
+// Log JWT Key
+var jwtKey = builder.Configuration["Jwt:Key"];
+Console.WriteLine($"🔐 JWT_KEY ({environment}): {(!string.IsNullOrEmpty(jwtKey) ? "✅ Loaded" : "❌ Missing")}");
+
+// Log Database Connection
+var dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
+Console.WriteLine($"🔐 DB_CONNECTION ({environment}): {(!string.IsNullOrEmpty(dbConnection) ? "✅ Loaded" : "❌ Missing")}");
+
+
+Console.WriteLine($"✅ Environment Setup Complete for {environment} mode.");
+
+
+
 // ----------------- Configure Error Handling ------------------
 var config = app.Services.GetRequiredService<IConfiguration>();
 int port = config.GetValue<int>("AppSettings:Port");
