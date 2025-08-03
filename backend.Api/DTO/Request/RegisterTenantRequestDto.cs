@@ -6,7 +6,7 @@ namespace backend.API.DTO.Request;
 public class RegisterTenantRequestDto
 {
 
-   
+    public Guid DriverId { get; set; }
     public string FirstName { get; set; }
 
     public string? MiddleName { get; set; } = null;

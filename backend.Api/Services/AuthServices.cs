@@ -143,6 +143,7 @@ namespace API.Services
             var tenant = new Tenant
             {
                 FirstName = dto.FirstName,
+                DriverId = dto.DriverId = Guid.NewGuid(),  
                 LastName = dto.LastName,
                 MiddleName = dto.MiddleName,
                 AdminPassword = _passwordHasher.HashPassword(null, dto.AdminPassword), // Hash the admin password
@@ -170,7 +171,6 @@ namespace API.Services
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 Role = "Driver", // Use your enum
-                TenantId = tenant.Id,
                 IsEmailVerified =false,
 
                 

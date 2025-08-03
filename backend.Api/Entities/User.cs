@@ -6,7 +6,7 @@ public class User
 {
     [SwaggerSchema(ReadOnly = true)]
     
-    public Guid TenantId { get; set; }
+   
     public Guid Id { get; set; }
 
     public string FirstName { get; set; } = string.Empty;

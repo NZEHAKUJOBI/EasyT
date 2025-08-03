@@ -7,6 +7,8 @@ namespace API.Entities
     {
         public Guid Id { get; set; } = Guid.NewGuid();
 
+        public Guid DriverId { get; set; } // Reference to the driver associated with this tenant
+
         // Fleet owner or company name
         public string FirstName { get; set; }
 
