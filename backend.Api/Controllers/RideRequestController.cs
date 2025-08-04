@@ -5,14 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using backend.API.DTO.Request;
 using backend.Api.DTO.Response;
-using backend.API.Services;
+using API.Services;
 using Microsoft.AspNetCore.Authorization;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace backend.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = "Passenger")] // Restrict access to only users with the Passenger role
+    [Authorize] // Restrict access to only users with the Passenger role
     public class RideRequestController : ControllerBase
     {
         private readonly ILogger<RideRequestController> _logger;
@@ -25,6 +26,7 @@ namespace backend.API.Controllers
         }
 
         [HttpPost("request")]
+        [SwaggerOperation(Summary = "Request a ride", Description = "Allows a passenger to request a ride by providing pickup and dropoff locations.")]
         public async Task<ActionResult<ServiceResponseDto<string>>> RequestRide(
             [FromBody] RideRequestDto dto,
             CancellationToken cancellationToken)

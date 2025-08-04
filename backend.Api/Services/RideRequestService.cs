@@ -7,8 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using backend.Api.DTO.Response;
 using API.Entities;
-namespace backend.API.Services
-
+namespace API.Services
 {
     public class RideRequestService
     {
@@ -42,6 +41,7 @@ namespace backend.API.Services
                 DropoffLocation = dto.DropoffLocation,
                 DropoffLatitude = dto.DropoffLatitude,
                 DropoffLongitude = dto.DropoffLongitude,
+                Status = RideStatus.Requested, // Default status
             };
 
             await _context.RideRequests.AddAsync(rideRequest, cancellationToken);

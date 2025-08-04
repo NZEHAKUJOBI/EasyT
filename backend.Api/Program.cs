@@ -7,7 +7,8 @@ using System.Text;
 using API.Interface;
 using Microsoft.AspNetCore.Identity;
 using API.Entities;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Binders;
+using Microsoft.OpenApi.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,25 +19,49 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IOtpService, OtpService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped< RideRequestService>();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddLogging();
 
 
+// ✅ Add Swagger with JWT Authorization
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "EasyT API", Version = "v1" });
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "EasyT API", Version = "v1" });
     c.EnableAnnotations();
+
+    // JWT Auth config
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer' followed by your JWT token.\r\nExample: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6..."
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
 });
-
-
-
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -58,7 +83,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
-
 // ✅ Identify the current environment
 var environment = builder.Environment.IsProduction() ? "Production"
                 : builder.Environment.IsStaging() ? "Staging"
@@ -77,12 +101,10 @@ Console.WriteLine($"🔐 JWT_KEY ({environment}): {(!string.IsNullOrEmpty(jwtKey
 var dbConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 Console.WriteLine($"🔐 DB_CONNECTION ({environment}): {(!string.IsNullOrEmpty(dbConnection) ? "✅ Loaded" : "❌ Missing")}");
 
-
 Console.WriteLine($"✅ Environment Setup Complete for {environment} mode.");
 
-
-
 // ----------------- Configure Error Handling ------------------
+
 var config = app.Services.GetRequiredService<IConfiguration>();
 int port = config.GetValue<int>("AppSettings:Port");
 Console.WriteLine($"Application running on port: {port}");

@@ -10,7 +10,6 @@ namespace API.Entities
         public string PassengerName { get; set; } = string.Empty;
         public User Passenger { get; set; }
 
-        public Guid TenantId { get; set; }
         public Tenant TenantName { get; set; }
         public Guid? DriverId { get; set; }
         public User Driver { get; set; }

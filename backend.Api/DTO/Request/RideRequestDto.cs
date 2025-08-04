@@ -6,7 +6,7 @@ namespace backend.API.DTO.Request
     {
         public Guid PassengerId { get; set; }
         public string PassengerName { get; set; } = string.Empty;
-        
+
         public string PickupLocation { get; set; }
         public double PickupLatitude { get; set; }
         public double PickupLongitude { get; set; }
@@ -14,5 +14,7 @@ namespace backend.API.DTO.Request
         public string DropoffLocation { get; set; }
         public double DropoffLatitude { get; set; }
         public double DropoffLongitude { get; set; }
+
+        public string RideStatus { get; set; }// Default status
     }
 }
