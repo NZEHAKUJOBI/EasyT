@@ -20,9 +20,9 @@ namespace API.Services
             _context = context;
         }
 
-    public async Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, CancellationToken cancellationToken = default)
-       {
-            
+        public async Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, CancellationToken cancellationToken = default)
+        {
+
             // 2 Validate Passenger
             var passenger = await _context.Users
                 .FirstOrDefaultAsync(u => u.Id == dto.PassengerId && u.Role == "Passenger", cancellationToken);
@@ -69,4 +69,47 @@ namespace API.Services
 
         private double ToRadians(double deg) => deg * (Math.PI / 180);
     }
+    
+       public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
+    Guid id,
+    CancellationToken cancellationToken = default)
+        {
+            var rideRequest = await _context.RideRequests
+                .Include(r => r.Passenger)
+                .Include(r => r.Driver)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+            return rideRequest is null
+                ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
+                : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
+        }
+        public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
+    Guid id,
+    CancellationToken cancellationToken = default)
+        {
+            var rideRequest = await _context.RideRequests
+                .Include(r => r.Passenger)
+                .Include(r => r.Driver)
+                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+            return rideRequest is null
+                ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
+                : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
+        }
+        public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
+    Guid id, 
+    CancellationToken cancellationToken = default)
+{
+    var rideRequest = await _context.RideRequests
+        .Include(r => r.Passenger)
+        .Include(r => r.Driver)
+        .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+
+    return rideRequest is null
+        ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
+        : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
+}
+
+    }
+
 }
