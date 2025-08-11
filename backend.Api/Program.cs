@@ -28,6 +28,7 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped< RideRequestService>();
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.AddLogging();
+builder.Services.AddScoped<IDriverService, DriverService>();
 
 
 // ✅ Add Swagger with JWT Authorization

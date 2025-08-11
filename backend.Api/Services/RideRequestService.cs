@@ -68,48 +68,22 @@ namespace API.Services
         }
 
         private double ToRadians(double deg) => deg * (Math.PI / 180);
-    }
     
-       public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
-    Guid id,
-    CancellationToken cancellationToken = default)
-        {
-            var rideRequest = await _context.RideRequests
-                .Include(r => r.Passenger)
-                .Include(r => r.Driver)
-                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
+    
+    public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
+        Guid id,
+        CancellationToken cancellationToken = default)
+    {
+        var rideRequest = await _context.RideRequests
+            .Include(r => r.Passenger)
+            .Include(r => r.Driver)
+            .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
 
-            return rideRequest is null
-                ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
-                : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
-        }
-        public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
-    Guid id,
-    CancellationToken cancellationToken = default)
-        {
-            var rideRequest = await _context.RideRequests
-                .Include(r => r.Passenger)
-                .Include(r => r.Driver)
-                .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-
-            return rideRequest is null
-                ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
-                : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
-        }
-        public async Task<ServiceResponseDto<RideRequest>> GetRideRequestByIdAsync(
-    Guid id, 
-    CancellationToken cancellationToken = default)
-{
-    var rideRequest = await _context.RideRequests
-        .Include(r => r.Passenger)
-        .Include(r => r.Driver)
-        .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-
-    return rideRequest is null
-        ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
-        : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
-}
-
+        return rideRequest is null
+            ? ServiceResponseDto<RideRequest>.FailResponse("Ride request not found.")
+            : ServiceResponseDto<RideRequest>.SuccessResponse(rideRequest);
     }
+
+}
 
 }
