@@ -72,17 +72,18 @@ namespace API.Controllers
             return Ok(result);
         }
 
-          [HttpPost("register-tenant")]
-        [SwaggerOperation(Summary = "Register a tenant", Description = "Creates a new user account.")]
-        [SwaggerResponse(200, "User registered successfully")]
-        [SwaggerResponse(400, "Registration failed")]
-        public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequestDto dto)
-        {
-            var result = await _authService.RegisterTenant(dto);
-            if (!result.Success)
-                return BadRequest(result);
+ [HttpPost("register-tenant")]
+[SwaggerOperation(Summary = "Register a tenant", Description = "Creates a new tenant account with admin credentials.")]
+[ProducesResponseType(typeof(ServiceResponseDto<string>), StatusCodes.Status200OK)]
+[ProducesResponseType(typeof(ServiceResponseDto<string>), StatusCodes.Status400BadRequest)]
+public async Task<IActionResult> RegisterTenant([FromBody] RegisterTenantRequestDto dto)
+{
+    if (!ModelState.IsValid)
+        return BadRequest(ServiceResponseDto<string>.FailResponse("Invalid input data."));
 
-            return Ok(result);
-        }
+    var result = await _authService.RegisterTenant(dto);
+    return result.Success ? Ok(result) : BadRequest(result);
+}
+
     }
 }

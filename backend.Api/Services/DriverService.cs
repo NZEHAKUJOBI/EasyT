@@ -1,104 +1,114 @@
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using API.Data;
-using backend.API.Entities;
-using backend.API.DTO.Request;
-using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using backend.Api.DTO.Response;
 using API.Entities;
 using API.Interface;
+using backend.Api.DTO.Response;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace API.Services
 {
     public class DriverService : IDriverService
     {
-        private readonly ILogger<RideRequestService> _logger;
-        private readonly AppDbContext _context;
-        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly ILogger<DriverService> _logger;
+        private readonly IServiceScopeFactory _scopeFactory;
 
-        public DriverService(ILogger<RideRequestService> logger, AppDbContext context, IServiceScopeFactory serviceScopeFactory)
+        public DriverService(ILogger<DriverService> logger, IServiceScopeFactory scopeFactory)
         {
             _logger = logger;
-            _context = context;
-            _serviceScopeFactory = serviceScopeFactory;
+            _scopeFactory = scopeFactory;
         }
 
-        public async Task<ServiceResponseDto<string>> UpdateVehicleLocation(Guid driverId, double latitude, double longitude, CancellationToken cancellationToken = default)
+        public async Task<ServiceResponseDto<string>> UpdateVehicleLocation(
+            Guid driverId,
+            double latitude,
+            double longitude,
+            CancellationToken cancellationToken = default)
         {
-            // Validate Driver
-            var driver = await _context.Tenants
-                .FirstOrDefaultAsync(u => u.Id == driverId && u.Role == "Driver", cancellationToken);
-            if (driver == null)
-                return ServiceResponseDto<string>.FailResponse("Driver not found.");
+            if (!IsValidCoordinates(latitude, longitude))
+            {
+                _logger.LogWarning("Invalid latitude/longitude: {Lat}, {Lng}", latitude, longitude);
+                return ServiceResponseDto<string>.FailResponse("Invalid latitude or longitude values.");
+            }
 
             try
             {
-                _logger.LogInformation($"Updating vehicle location for driver {driver.Email} with ID: {driverId}");
-
-                // Update driver's vehicle location
-                if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
-                {
-                    _logger.LogWarning($"Invalid latitude or longitude values: {latitude}, {longitude}");
-                    return ServiceResponseDto<string>.FailResponse("Invalid latitude or longitude values.");
-                }
-                using var scope = _serviceScopeFactory.CreateScope();
+                using var scope = _scopeFactory.CreateScope();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-                var busDriver = await dbContext.Tenants
-                    .FirstOrDefaultAsync(b => b.Id == driverId && b.Role == "Driver");
+                var driver = await dbContext.Tenants
+                    .FirstOrDefaultAsync(d => d.Id == driverId && d.Role == "Driver", cancellationToken);
 
-                if (busDriver == null)
-                    return ServiceResponseDto<string>.FailResponse("Driver not found.");
-                if (!busDriver.IsActive)
-                    return ServiceResponseDto<string>.FailResponse("Driver is not active.");
-                var lastTimestamp = await dbContext.BusLocations
-                   .Where(b => b.DiverId == driverId)
-                   .OrderByDescending(b => b.Timestamp)
-                   .Select(b => b.Timestamp)
-                   .FirstOrDefaultAsync(cancellationToken);
-                var minInterval = TimeSpan.FromSeconds(20); // Minimum interval of 30 seconds  
-                if (lastTimestamp != default && DateTime.UtcNow - lastTimestamp < minInterval)
-                    return ServiceResponseDto<string>.FailResponse("Location update too frequent. Please wait before updating again.");
+                if (driver == null) return Fail("Driver not found.");
+                if (!driver.IsActive) return Fail("Driver is not active.");
 
-                var lastLocation = await dbContext.BusLocations
-                    .Where(b => b.DiverId == driverId)
-                    .OrderByDescending(b => b.Timestamp)
-                    .FirstOrDefaultAsync(cancellationToken);
-                if (lastLocation != null && Math.Abs(lastLocation.Latitude - latitude) < 0.0001 && Math.Abs(lastLocation.Longitude - longitude) < 0.0001)
+                if (await IsTooFrequentUpdate(dbContext, driverId, cancellationToken))
+                    return Fail("Location update too frequent. Please wait before updating again.");
+
+                if (await IsNoSignificantChange(dbContext, driverId, latitude, longitude, cancellationToken))
                 {
                     _logger.LogInformation("No significant change in location. Skipping update.");
-                    return ServiceResponseDto<string>.SuccessResponse("No significant change in location.");
+                    return Success("No significant change in location.");
                 }
 
-                var driverName = await dbContext.Tenants
-                    .Where(b => b.Id == driverId)
-                    .Select(b => $"{b.FirstName} {b.LastName}")
-                    .FirstOrDefaultAsync(cancellationToken);
-
+                var driverName = $"{driver.FirstName} {driver.LastName}".Trim();
                 var busLocation = new BusLocation
                 {
                     DiverId = driverId,
-                    TripId = Guid.NewGuid(), // Assuming a new trip for each location update
+                    TripId = Guid.NewGuid(),
                     Latitude = latitude,
                     Longitude = longitude,
                     Timestamp = DateTime.UtcNow,
-                    DriverName = driverName ?? "Unknown Driver"
-
+                    DriverName = string.IsNullOrWhiteSpace(driverName) ? "Unknown Driver" : driverName
                 };
 
                 await dbContext.BusLocations.AddAsync(busLocation, cancellationToken);
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                return ServiceResponseDto<string>.SuccessResponse("Vehicle location updated successfully.");
+                return Success("Vehicle location updated successfully.");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating vehicle location for driver {DriverId}", driverId);
-                return ServiceResponseDto<string>.FailResponse("An error occurred while updating vehicle location.");
+                return Fail("An error occurred while updating vehicle location.");
             }
         }
 
+        private static bool IsValidCoordinates(double latitude, double longitude) =>
+            latitude is >= -90 and <= 90 && longitude is >= -180 and <= 180;
 
+        private static ServiceResponseDto<string> Fail(string message) =>
+            ServiceResponseDto<string>.FailResponse(message);
+
+        private static ServiceResponseDto<string> Success(string message) =>
+            ServiceResponseDto<string>.SuccessResponse(message);
+
+        private async Task<bool> IsTooFrequentUpdate(AppDbContext dbContext, Guid driverId, CancellationToken ct)
+        {
+            var lastTimestamp = await dbContext.BusLocations
+                .Where(b => b.DiverId == driverId)
+                .OrderByDescending(b => b.Timestamp)
+                .Select(b => b.Timestamp)
+                .FirstOrDefaultAsync(ct);
+
+            var minInterval = TimeSpan.FromSeconds(20);
+            return lastTimestamp != default && DateTime.UtcNow - lastTimestamp < minInterval;
+        }
+
+        private async Task<bool> IsNoSignificantChange(AppDbContext dbContext, Guid driverId, double lat, double lng, CancellationToken ct)
+        {
+            var lastLocation = await dbContext.BusLocations
+                .Where(b => b.DiverId == driverId)
+                .OrderByDescending(b => b.Timestamp)
+                .FirstOrDefaultAsync(ct);
+
+            return lastLocation != null &&
+                   Math.Abs(lastLocation.Latitude - lat) < 0.0001 &&
+                   Math.Abs(lastLocation.Longitude - lng) < 0.0001;
+        }
     }
-
 }

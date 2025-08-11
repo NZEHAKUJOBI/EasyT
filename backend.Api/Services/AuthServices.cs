@@ -127,70 +127,75 @@ namespace API.Services
                 Role = user.Role
             });
         }
-            public async Task<ServiceResponseDto<string>> RegisterTenant(RegisterTenantRequestDto dto)
-        {
-            // Check for existing tenant by email
-            if (await _context.Tenants.AnyAsync(t => t.Email == dto.Email))
-                return ServiceResponseDto<string>.FailResponse("Tenant with this email already exists.");
+          public async Task<ServiceResponseDto<string>> RegisterTenant(RegisterTenantRequestDto dto)
+{
+    // Check if email already exists in tenants or users
+    if (await EmailExists(dto.Email))
+        return Fail("Email already exists for a tenant or user.");
 
-            // Check for existing user by email
-            if (await _context.Users.AnyAsync(u => u.Email == dto.Email))
-                return ServiceResponseDto<string>.FailResponse("User with this email already exists.");
+    // Validate password
+    if (!PasswordValidatorUtility.IsValidPassword(dto.AdminPassword))
+        return Fail("Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
 
-            if (!PasswordValidatorUtility.IsValidPassword(dto.AdminPassword))
-            return ServiceResponseDto<string>.FailResponse(message: "Password must be at least 8 characters long, contain at least one uppercase letter, one lowercase letter, one number, and one special character.");
-            // Create tenant entity
-            var tenant = new Tenant
-            {
-                FirstName = dto.FirstName,
-                DriverId = dto.DriverId = Guid.NewGuid(),  
-                LastName = dto.LastName,
-                MiddleName = dto.MiddleName,
-                AdminPassword = _passwordHasher.HashPassword(null, dto.AdminPassword), // Hash the admin password
-                Email = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                BaseFare = 500, // Default base fare
-                PerKilometerRate = 100,
-                CommissionRate = 0.10m,
-                CreatedAt = DateTime.UtcNow,
-                IsActive = false,
-                UpdatedAt = DateTime.UtcNow,
-                Role = "Driver", // Default role for tenant admin
-              
-                
-            };
+    var driverId = Guid.NewGuid();
+    var hashedPassword = _passwordHasher.HashPassword(null, dto.AdminPassword);
 
-            await _context.Tenants.AddAsync(tenant);
+    // Create tenant entity
+    var tenant = new Tenant
+    {
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        MiddleName = dto.MiddleName,
+        DriverId = driverId,
+        AdminPassword = hashedPassword,
+        Email = dto.Email,
+        PhoneNumber = dto.PhoneNumber,
+        BaseFare = 500,
+        PerKilometerRate = 100,
+        CommissionRate = 0.10m,
+        CreatedAt = DateTime.UtcNow,
+        UpdatedAt = DateTime.UtcNow,
+        IsActive = false,
+        Role = "Driver"
+    };
 
-            // Create tenant admin user (User entity, not Tenant)
-            var adminUser = new User
-            {
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                MiddleName = dto.MiddleName,
-                Email = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                Role = "Driver", // Use your enum
-                IsEmailVerified =false,
+    // Create tenant admin user
+    var adminUser = new User
+    {
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        MiddleName = dto.MiddleName,
+        Email = dto.Email,
+        PhoneNumber = dto.PhoneNumber,
+        Role = "Driver",
+        IsEmailVerified = false,
+        PasswordHash = _passwordHasher.HashPassword(null, dto.AdminPassword)
+    };
 
-                
-            };
+    // Save to DB
+    await _context.Tenants.AddAsync(tenant);
+    await _context.Users.AddAsync(adminUser);
+    await _context.SaveChangesAsync();
 
-            // Hash and assign password
-            adminUser.PasswordHash = _passwordHasher.HashPassword(adminUser, dto.AdminPassword);
+    // Send OTP
+    var otp = _otpService.GenerateOtp();
+    _otpService.StoreOtp(dto.Email, otp);
+    await _emailService.SendEmailAsync(dto.Email, "Verify your email", $"Your OTP is: {otp}");
 
-            await _context.Users.AddAsync(adminUser);
+    return Success("Tenant registered successfully.");
+}
 
-            // Save all changes
-            await _context.SaveChangesAsync();
-            var otp = _otpService.GenerateOtp();
-            _otpService.StoreOtp(dto.Email, otp);
+private async Task<bool> EmailExists(string email)
+{
+    return await _context.Tenants.AnyAsync(t => t.Email == email) ||
+           await _context.Users.AnyAsync(u => u.Email == email);
+}
 
-            await _emailService.SendEmailAsync(dto.Email, "Verify your email", $"Your OTP is: {otp}");
+private static ServiceResponseDto<string> Fail(string message) =>
+    ServiceResponseDto<string>.FailResponse(message);
 
-
-            return ServiceResponseDto<string>.SuccessResponse("Tenant registered successfully.");
-        }
+private static ServiceResponseDto<string> Success(string message) =>
+    ServiceResponseDto<string>.SuccessResponse(message);
 
     } }
 
