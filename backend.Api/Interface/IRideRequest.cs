@@ -8,6 +8,6 @@ namespace API.Interface
 
     public interface IRideRequest
     {
-        Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, CancellationToken cancellationToken = default);
+        Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, Guid PassengerId,CancellationToken cancellationToken = default);
     }
 }

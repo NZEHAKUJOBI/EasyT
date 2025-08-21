@@ -8,7 +8,12 @@ namespace API.Interface
 
     public interface IDriverService
     {
-        Task<ServiceResponseDto<string>>UpdateVehicleLocation(Guid driverId, double latitude, double longitude, CancellationToken cancellationToken = default);
+ 
+        Task<ServiceResponseDto<string>> UpdateVehicleLocation(
+                Guid driverId,
+                double latitude,
+                double longitude,
+                CancellationToken cancellationToken = default);
         
     }
 }

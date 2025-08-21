@@ -1,11 +1,13 @@
 
 
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace backend.API.DTO.Request
 {
     public class RideRequestDto
     {
+        [SwaggerIgnore]
         public Guid PassengerId { get; set; }
-        public string PassengerName { get; set; } = string.Empty;
 
         public string PickupLocation { get; set; }
         public double PickupLatitude { get; set; }
@@ -15,6 +17,7 @@ namespace backend.API.DTO.Request
         public double DropoffLatitude { get; set; }
         public double DropoffLongitude { get; set; }
 
-        public string RideStatus { get; set; }// Default status
+        [SwaggerIgnore]
+        public string RideStatus { get; set; } = "Requested"; // Default status
     }
 }

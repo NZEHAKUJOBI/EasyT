@@ -23,6 +23,9 @@ namespace API.Services
             _scopeFactory = scopeFactory;
         }
 
+        /// <summary>
+        /// Updates vehicle location for a driver
+        /// </summary>
         public async Task<ServiceResponseDto<string>> UpdateVehicleLocation(
             Guid driverId,
             double latitude,
@@ -32,7 +35,7 @@ namespace API.Services
             if (!IsValidCoordinates(latitude, longitude))
             {
                 _logger.LogWarning("Invalid latitude/longitude: {Lat}, {Lng}", latitude, longitude);
-                return ServiceResponseDto<string>.FailResponse("Invalid latitude or longitude values.");
+                return Fail("Invalid latitude or longitude values.");
             }
 
             try
@@ -43,8 +46,11 @@ namespace API.Services
                 var driver = await dbContext.Tenants
                     .FirstOrDefaultAsync(d => d.Id == driverId && d.Role == "Driver", cancellationToken);
 
-                if (driver == null) return Fail("Driver not found.");
-                if (!driver.IsActive) return Fail("Driver is not active.");
+                if (driver == null)
+                    return Fail("Driver not found.");
+
+                if (!driver.IsActive)
+                    return Fail("Driver is not active.");
 
                 if (await IsTooFrequentUpdate(dbContext, driverId, cancellationToken))
                     return Fail("Location update too frequent. Please wait before updating again.");
@@ -58,7 +64,8 @@ namespace API.Services
                 var driverName = $"{driver.FirstName} {driver.LastName}".Trim();
                 var busLocation = new BusLocation
                 {
-                    DiverId = driverId,
+                   
+                    DriverId = driverId,
                     TripId = Guid.NewGuid(),
                     Latitude = latitude,
                     Longitude = longitude,
@@ -78,6 +85,8 @@ namespace API.Services
             }
         }
 
+        #region Helpers
+
         private static bool IsValidCoordinates(double latitude, double longitude) =>
             latitude is >= -90 and <= 90 && longitude is >= -180 and <= 180;
 
@@ -90,7 +99,7 @@ namespace API.Services
         private async Task<bool> IsTooFrequentUpdate(AppDbContext dbContext, Guid driverId, CancellationToken ct)
         {
             var lastTimestamp = await dbContext.BusLocations
-                .Where(b => b.DiverId == driverId)
+                .Where(b => b.DriverId == driverId)
                 .OrderByDescending(b => b.Timestamp)
                 .Select(b => b.Timestamp)
                 .FirstOrDefaultAsync(ct);
@@ -102,7 +111,7 @@ namespace API.Services
         private async Task<bool> IsNoSignificantChange(AppDbContext dbContext, Guid driverId, double lat, double lng, CancellationToken ct)
         {
             var lastLocation = await dbContext.BusLocations
-                .Where(b => b.DiverId == driverId)
+                .Where(b => b.DriverId == driverId)
                 .OrderByDescending(b => b.Timestamp)
                 .FirstOrDefaultAsync(ct);
 
@@ -110,5 +119,7 @@ namespace API.Services
                    Math.Abs(lastLocation.Latitude - lat) < 0.0001 &&
                    Math.Abs(lastLocation.Longitude - lng) < 0.0001;
         }
+
+        #endregion
     }
 }

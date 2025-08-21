@@ -28,17 +28,23 @@ namespace backend.API.Controllers
         [HttpPost("request")]
         [SwaggerOperation(Summary = "Request a ride", Description = "Allows a passenger to request a ride by providing pickup and dropoff locations.")]
         public async Task<ActionResult<ServiceResponseDto<string>>> RequestRide(
-            [FromBody] RideRequestDto dto,
+            [FromBody] RideRequestDto dto, 
             CancellationToken cancellationToken)
-        {
+        {   
+            var PassengerIdStr = User.FindFirst("UserId")?.Value;
             if (!ModelState.IsValid)
             {
                 return BadRequest(ServiceResponseDto<string>.FailResponse("Invalid input data."));
             }
 
+            if (!Guid.TryParse(PassengerIdStr, out Guid PassengerId))
+            {
+                return BadRequest(ServiceResponseDto<string>.FailResponse("Invalid PassengerId."));
+            }
+
             try
             {
-                var result = await _rideRequestService.CreateRideRequestAsync(dto, cancellationToken);
+                var result = await _rideRequestService.CreateRideRequestAsync(dto, PassengerId, cancellationToken);
 
                 if (!result.Success)
                     return BadRequest(result);

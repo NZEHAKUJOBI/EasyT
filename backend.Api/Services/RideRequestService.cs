@@ -20,28 +20,31 @@ namespace API.Services
             _context = context;
         }
 
-        public async Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, CancellationToken cancellationToken = default)
+        public async Task<ServiceResponseDto<string>> CreateRideRequestAsync(RideRequestDto dto, Guid PassengerId, CancellationToken cancellationToken = default)
         {
 
             // 2 Validate Passenger
             var passenger = await _context.Users
-                .FirstOrDefaultAsync(u => u.Id == dto.PassengerId && u.Role == "Passenger", cancellationToken);
+                .FirstOrDefaultAsync(u => u.Id == PassengerId && u.Role == "Passenger", cancellationToken);
             if (passenger == null)
                 return ServiceResponseDto<string>.FailResponse("Passenger not found.");
-
+            var passengerName = await _context.Users
+                .Where(u => u.Id == PassengerId)
+                .Select(u => $"{u.FirstName} {u.LastName}")
+                .FirstOrDefaultAsync(cancellationToken);
 
             // 4️Create RideRequest entity
             var rideRequest = new RideRequest
             {
-                PassengerId = passenger.Id,
-                PassengerName = $"{passenger.FirstName} {passenger.LastName}",
+                PassengerId = PassengerId,
+                PassengerName = passengerName ?? "Unknown Passenger",
                 PickupLocation = dto.PickupLocation,
                 PickupLatitude = dto.PickupLatitude,
                 PickupLongitude = dto.PickupLongitude,
                 DropoffLocation = dto.DropoffLocation,
                 DropoffLatitude = dto.DropoffLatitude,
-                DropoffLongitude = dto.DropoffLongitude,
-                Status = RideStatus.Requested, // Default status
+                DropoffLongitude = dto.DropoffLongitude
+                
             };
 
             await _context.RideRequests.AddAsync(rideRequest, cancellationToken);
