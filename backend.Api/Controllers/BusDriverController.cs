@@ -35,7 +35,7 @@ public async Task<ActionResult<ServiceResponseDto<string>>> UpdateVehicleLocatio
     [FromBody] BusLocationRequest dto,
     CancellationToken cancellationToken)
 {
-    var driverIdClaim = User.FindFirst("DriverId")?.Value;
+    var driverIdClaim = User.FindFirst("UserId")?.Value;
     if (!Guid.TryParse(driverIdClaim, out var driverId))
         return Unauthorized(ServiceResponseDto<string>.FailResponse("Driver ID missing or invalid in token."));
 
@@ -45,7 +45,7 @@ public async Task<ActionResult<ServiceResponseDto<string>>> UpdateVehicleLocatio
     try
     {
         // Override DriverId from token (never trust client input)
-        dto.DriverId = driverId;
+        // driverIdClaim = driverId; // No need to assign Guid to string
 
     var result = await _driverService.UpdateVehicleLocation(driverId, dto.Latitude, dto.Longitude, cancellationToken);
         return result.Success ? Ok(result) : BadRequest(result);

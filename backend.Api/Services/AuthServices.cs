@@ -143,6 +143,7 @@ namespace API.Services
     // Create tenant entity
     var tenant = new Tenant
     {
+        Id = driverId,
         FirstName = dto.FirstName,
         LastName = dto.LastName,
         MiddleName = dto.MiddleName,
@@ -162,6 +163,7 @@ namespace API.Services
     // Create tenant admin user
     var adminUser = new User
     {
+        Id = driverId,
         FirstName = dto.FirstName,
         LastName = dto.LastName,
         MiddleName = dto.MiddleName,

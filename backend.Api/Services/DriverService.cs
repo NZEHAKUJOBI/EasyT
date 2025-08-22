@@ -23,67 +23,65 @@ namespace API.Services
             _scopeFactory = scopeFactory;
         }
 
-        /// <summary>
-        /// Updates vehicle location for a driver
-        /// </summary>
-        public async Task<ServiceResponseDto<string>> UpdateVehicleLocation(
-            Guid driverId,
-            double latitude,
-            double longitude,
-            CancellationToken cancellationToken = default)
+       public async Task<ServiceResponseDto<string>> UpdateVehicleLocation(
+    Guid driverId,
+    double latitude,
+    double longitude,
+    CancellationToken cancellationToken = default)
+{
+    if (!IsValidCoordinates(latitude, longitude))
+    {
+        _logger.LogWarning("Invalid latitude/longitude: {Lat}, {Lng}", latitude, longitude);
+        return Fail("Invalid latitude or longitude values.");
+    }
+
+    try
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var driver = await dbContext.Tenants
+            .FirstOrDefaultAsync(d => d.Id == driverId && d.Role == "Driver", cancellationToken);
+
+        if (driver == null)
+            return Fail("Driver not found.");
+
+        if (!driver.IsActive)
+            return Fail("Driver is not active.");
+
+        if (await IsTooFrequentUpdate(dbContext, driverId, cancellationToken))
+            return Fail("Location update too frequent. Please wait before updating again.");
+
+        if (await IsNoSignificantChange(dbContext, driverId, latitude, longitude, cancellationToken))
         {
-            if (!IsValidCoordinates(latitude, longitude))
-            {
-                _logger.LogWarning("Invalid latitude/longitude: {Lat}, {Lng}", latitude, longitude);
-                return Fail("Invalid latitude or longitude values.");
-            }
-
-            try
-            {
-                using var scope = _scopeFactory.CreateScope();
-                var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-
-                var driver = await dbContext.Tenants
-                    .FirstOrDefaultAsync(d => d.Id == driverId && d.Role == "Driver", cancellationToken);
-
-                if (driver == null)
-                    return Fail("Driver not found.");
-
-                if (!driver.IsActive)
-                    return Fail("Driver is not active.");
-
-                if (await IsTooFrequentUpdate(dbContext, driverId, cancellationToken))
-                    return Fail("Location update too frequent. Please wait before updating again.");
-
-                if (await IsNoSignificantChange(dbContext, driverId, latitude, longitude, cancellationToken))
-                {
-                    _logger.LogInformation("No significant change in location. Skipping update.");
-                    return Success("No significant change in location.");
-                }
-
-                var driverName = $"{driver.FirstName} {driver.LastName}".Trim();
-                var busLocation = new BusLocation
-                {
-                   
-                    DriverId = driverId,
-                    TripId = Guid.NewGuid(),
-                    Latitude = latitude,
-                    Longitude = longitude,
-                    Timestamp = DateTime.UtcNow,
-                    DriverName = string.IsNullOrWhiteSpace(driverName) ? "Unknown Driver" : driverName
-                };
-
-                await dbContext.BusLocations.AddAsync(busLocation, cancellationToken);
-                await dbContext.SaveChangesAsync(cancellationToken);
-
-                return Success("Vehicle location updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating vehicle location for driver {DriverId}", driverId);
-                return Fail("An error occurred while updating vehicle location.");
-            }
+            _logger.LogInformation("No significant change in location. Skipping update.");
+            return Success("No significant change in location.");
         }
+
+        var busLocation = new BusLocation
+        {
+            Id = Guid.NewGuid(),
+            DriverId = driverId,
+            TripId = Guid.NewGuid(), // consider passing this if you want trip grouping
+            Latitude = latitude,
+            Longitude = longitude,
+            Timestamp = DateTime.UtcNow,
+            Status = "Active",
+            DriverName = $"{driver.FirstName} {driver.LastName}"
+        };
+
+        await dbContext.BusLocations.AddAsync(busLocation, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        return Success("Vehicle location updated successfully.");
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error updating vehicle location for driver {DriverId}", driverId);
+        return Fail("An error occurred while updating vehicle location.");
+    }
+}
+
 
         #region Helpers
 
