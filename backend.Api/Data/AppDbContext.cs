@@ -16,4 +16,6 @@ public class AppDbContext : DbContext
     public DbSet<UserLocation> UserLocations => Set<UserLocation>();
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<RideRequest> RideRequests => Set<RideRequest>();
+    public DbSet<GeneralNotification> GeneralNotifications { get; set; }
+
 }

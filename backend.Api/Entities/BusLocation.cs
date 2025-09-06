@@ -1,4 +1,5 @@
 namespace API.Entities;
+using Swashbuckle.AspNetCore.Annotations;
 
 public class BusLocation
 {
@@ -10,8 +11,8 @@ public class BusLocation
      public double Longitude { get; set; }
 
     public string LocationName { get; set; } = string.Empty;
-
-    public string Status { get; set; } = "Active"; // Default status
+     [SwaggerIgnore]
+    public string Status { get; set; }  // Default status
 
     public Guid DriverId { get; set; }
 

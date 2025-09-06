@@ -66,6 +66,7 @@ namespace API.Services
             Latitude = latitude,
             Longitude = longitude,
             Timestamp = DateTime.UtcNow,
+            LocationName = "Unknown", // Could integrate with a geocoding service
             Status = "Active",
             DriverName = $"{driver.FirstName} {driver.LastName}"
         };
