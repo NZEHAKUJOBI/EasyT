@@ -1,15 +1,22 @@
+using Swashbuckle.AspNetCore.Annotations;
+
 namespace API.Entities;
 
 public class User
 {
+    [SwaggerSchema(ReadOnly = true)]
+
+
     public Guid Id { get; set; }
-    public string FullName { get; set; } = string.Empty;
+
+    public string FirstName { get; set; } = string.Empty;
+    public string LastName { get; set; } = string.Empty;
+
+    public string MiddleName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-    public string Role { get; set; } = "Passenger"; // Admin, Driver, Passenger
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string Role { get; set; } = "Passenger";
     public string? PhoneNumber { get; set; } = null;
-    public bool IsActive { get; set; } = true; // Indicates if the user account is active
-    public DateTime? UpdatedAt { get; set; } = null; // Timestamp for the last update to the user profile
 
+    public bool IsEmailVerified { get; set; } = false; // Default to false
 }
